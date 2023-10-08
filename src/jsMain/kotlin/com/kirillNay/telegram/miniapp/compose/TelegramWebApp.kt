@@ -1,13 +1,15 @@
-package nay.kirill.telegram_kmp.mini_app.compose
+package com.kirillNay.telegram.miniapp.compose
 
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Shapes
+import androidx.compose.material.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
-import nay.kirill.telegram_kmp.mini_app.compose.theme.ColorsConverter
-import nay.kirill.telegram_kmp.mini_app.compose.theme.ThemeHandler
+import com.kirillNay.telegram.miniapp.compose.theme.ColorsConverter
+import com.kirillNay.telegram.miniapp.compose.theme.ThemeHandler
 import org.jetbrains.skiko.wasm.onWasmReady
 
 /**
@@ -27,6 +29,8 @@ import org.jetbrains.skiko.wasm.onWasmReady
 fun telegramWebApp(
         colorsConverter: ColorsConverter = ColorsConverter.Default(),
         themeHandler: ThemeHandler = ThemeHandler.Default(colorsConverter),
+        typography: Typography = MaterialTheme.typography,
+        shapes: Shapes = MaterialTheme.shapes,
         content: @Composable () -> Unit
 ) {
     onWasmReady {
@@ -34,8 +38,10 @@ fun telegramWebApp(
             val colors by themeHandler.colors.collectAsState()
 
             MaterialTheme(
-                colors = colors,
-                content = content
+                    colors = colors,
+                    typography = typography,
+                    shapes = shapes,
+                    content = content
             )
         }
     }

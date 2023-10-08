@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp
+package com.kirillNay.telegram.miniapp.webApp
 
 /**
  * Mini Apps can [adjust the appearance](https://core.telegram.org/bots/webapps#color-schemes) of the interface to match the Telegram user's app in real time.

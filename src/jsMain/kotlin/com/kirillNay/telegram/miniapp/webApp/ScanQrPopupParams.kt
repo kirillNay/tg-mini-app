@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp
+package com.kirillNay.telegram.miniapp.webApp
 
 /**
  * This object describes the native popup for scanning QR codes.

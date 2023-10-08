@@ -1,11 +1,11 @@
 @file:Suppress("UnsafeCastFromDynamic")
 
-package nay.kirill.telegram_kmp.mini_app.webApp
+package com.kirillNay.telegram.miniapp.webApp
 
-import nay.kirill.telegram_kmp.mini_app.webApp.buttons.BackButton
-import nay.kirill.telegram_kmp.mini_app.webApp.buttons.MainButton
-import nay.kirill.telegram_kmp.mini_app.webApp.data.WebAppInitData
-import nay.kirill.telegram_kmp.mini_app.webApp.popup.PopupParams
+import com.kirillNay.telegram.miniapp.webApp.buttons.BackButton
+import com.kirillNay.telegram.miniapp.webApp.buttons.MainButton
+import com.kirillNay.telegram.miniapp.webApp.data.WebAppInitData
+import com.kirillNay.telegram.miniapp.webApp.popup.PopupParams
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 

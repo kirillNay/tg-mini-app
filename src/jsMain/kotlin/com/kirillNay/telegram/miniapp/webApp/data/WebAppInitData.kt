@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp.data
+package com.kirillNay.telegram.miniapp.webApp.data
 
 /**
  * This object contains data that is transferred to the Mini App when it is opened. It is empty if the Mini App was launched from a keyboard button or from inline mode.

@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp
+package com.kirillNay.telegram.miniapp.webApp
 
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine

@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp.data
+package com.kirillNay.telegram.miniapp.webApp.data
 
 /**
  * This object contains the data of the Mini App user.

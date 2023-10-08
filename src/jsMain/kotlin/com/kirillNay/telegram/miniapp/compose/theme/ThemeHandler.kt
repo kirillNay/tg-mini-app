@@ -1,11 +1,11 @@
-package nay.kirill.telegram_kmp.mini_app.compose.theme
+package com.kirillNay.telegram.miniapp.compose.theme
 
 import androidx.compose.material.Colors
 import androidx.compose.runtime.Stable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import nay.kirill.telegram_kmp.mini_app.webApp.EventType
-import nay.kirill.telegram_kmp.mini_app.webApp.webApp
+import com.kirillNay.telegram.miniapp.webApp.EventType
+import com.kirillNay.telegram.miniapp.webApp.webApp
 
 /**
  * Handles theme changes of mini app. Default implementation configure colors based on telegram app theme changes.

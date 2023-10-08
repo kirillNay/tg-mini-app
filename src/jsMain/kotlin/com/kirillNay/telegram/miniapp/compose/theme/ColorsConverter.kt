@@ -1,10 +1,10 @@
-package nay.kirill.telegram_kmp.mini_app.compose.theme
+package com.kirillNay.telegram.miniapp.compose.theme
 
 import androidx.compose.material.Colors
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Stable
-import nay.kirill.telegram_kmp.mini_app.webApp.ColorScheme
+import com.kirillNay.telegram.miniapp.webApp.ColorScheme
 
 /**
  * Use for providing mini app colors based on current [TelegramColors] and [ColorScheme].

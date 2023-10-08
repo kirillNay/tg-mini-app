@@ -1,10 +1,11 @@
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
+    id("maven-publish")
 }
 
-group = "nay.kirill"
-version = "1.0-SNAPSHOT"
+group = "com.kirillNay.telegram"
+version = "0.0.1"
 
 repositories {
     mavenCentral()
@@ -41,7 +42,7 @@ allprojects {
 
 kotlin {
     js(IR) {
-        moduleName = "telegram-mini-app-kmp"
+        moduleName = "mini-app"
         binaries.executable()
     }
     sourceSets {

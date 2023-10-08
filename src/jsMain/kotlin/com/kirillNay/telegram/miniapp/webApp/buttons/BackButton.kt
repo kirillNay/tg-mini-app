@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp.buttons
+package com.kirillNay.telegram.miniapp.webApp.buttons
 
 /**
  * This object controls the back button, which can be displayed in the header of the Mini App in the Telegram interface.

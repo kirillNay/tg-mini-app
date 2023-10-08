@@ -1,7 +1,7 @@
-package nay.kirill.telegram_kmp.mini_app.compose.theme
+package com.kirillNay.telegram.miniapp.compose.theme
 
 import androidx.compose.ui.graphics.Color
-import nay.kirill.telegram_kmp.mini_app.webApp.webApp
+import com.kirillNay.telegram.miniapp.webApp.webApp
 
 @OptIn(ExperimentalStdlibApi::class)
 data class TelegramColors(

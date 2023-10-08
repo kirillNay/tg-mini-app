@@ -15,5 +15,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "telegram-miniapp-kmp"
+rootProject.name = "mini-app"
 

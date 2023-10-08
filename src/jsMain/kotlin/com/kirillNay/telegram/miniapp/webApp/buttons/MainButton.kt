@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp.buttons
+package com.kirillNay.telegram.miniapp.webApp.buttons
 
 /**
  * This object controls the main button, which is displayed at the bottom of the Mini App in the Telegram interface.

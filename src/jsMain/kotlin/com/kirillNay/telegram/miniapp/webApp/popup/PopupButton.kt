@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp.popup
+package com.kirillNay.telegram.miniapp.webApp.popup
 
 /**
  * This object describes the native popup button.

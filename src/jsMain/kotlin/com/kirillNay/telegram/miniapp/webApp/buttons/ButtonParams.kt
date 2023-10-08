@@ -1,4 +1,4 @@
-package nay.kirill.telegram_kmp.mini_app.webApp.buttons
+package com.kirillNay.telegram.miniapp.webApp.buttons
 
 /**
  * The params parameter is an object containing one or several fields that need to be changed
