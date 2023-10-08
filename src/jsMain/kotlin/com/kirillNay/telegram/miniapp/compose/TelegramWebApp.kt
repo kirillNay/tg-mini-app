@@ -29,8 +29,8 @@ import org.jetbrains.skiko.wasm.onWasmReady
 fun telegramWebApp(
         colorsConverter: ColorsConverter = ColorsConverter.Default(),
         themeHandler: ThemeHandler = ThemeHandler.Default(colorsConverter),
-        typography: Typography = MaterialTheme.typography,
-        shapes: Shapes = MaterialTheme.shapes,
+        typography: Typography? = null,
+        shapes: Shapes? = null,
         content: @Composable () -> Unit
 ) {
     onWasmReady {
@@ -39,8 +39,8 @@ fun telegramWebApp(
 
             MaterialTheme(
                     colors = colors,
-                    typography = typography,
-                    shapes = shapes,
+                    typography = typography ?: MaterialTheme.typography,
+                    shapes = shapes ?: MaterialTheme.shapes,
                     content = content
             )
         }
