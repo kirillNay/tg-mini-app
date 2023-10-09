@@ -65,3 +65,7 @@ class CustomConverter : ColorsConverter {
 In case your app contains more complicated scheme of theme setting like dynamic theme switching, you should provide implementation of `ThemeHandler` that has only one filed - `Flow` of accepted colors. By default new colors accepted every time color scheme is changed.
 
 Also in case your app suppports dynamic theme switching you can pass `animationDuration` to `telegramWebApp` to manage animation of theme switching.
+
+## Sample
+
+Check [GlassOfWater](https://github.com/kirillNay/GlassOfWater-client) - simple web app created with Kotlin and Compose Multiplatform.
