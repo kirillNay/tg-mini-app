@@ -15,5 +15,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "mini-app"
+rootProject.name = "tg-mini-app"
 

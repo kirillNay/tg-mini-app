@@ -4,8 +4,8 @@ plugins {
     id("maven-publish")
 }
 
-group = "com.kirillNay.telegram"
-version = "0.0.3"
+group = "io.github.kirillNay"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -52,11 +52,6 @@ kotlin {
                 api(compose.foundation)
                 api(compose.material)
                 api(compose.ui)
-
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-                implementation(compose.material3)
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-                implementation(compose.components.resources)
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
             }
