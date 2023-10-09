@@ -16,4 +16,4 @@ pluginManagement {
 }
 
 rootProject.name = "tg-mini-app"
-
+includeBuild("convention-plugins")

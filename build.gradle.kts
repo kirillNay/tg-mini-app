@@ -1,7 +1,8 @@
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
-    id("maven-publish")
+
+    id("convention.publication")
 }
 
 group = "io.github.kirillNay"
