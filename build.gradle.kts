@@ -1,12 +1,13 @@
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
+    kotlin("plugin.compose")
 
     id("convention.publication")
 }
 
 group = "io.github.kirillNay"
-version = "1.1.0"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
@@ -22,11 +23,12 @@ allprojects {
 
 kotlin {
     js(IR) {
-        moduleName = "mini-app"
+        outputModuleName = "mini-app"
         binaries.executable()
+        browser {}
     }
     sourceSets {
-        val jsMain by getting {
+        jsMain {
             dependencies {
                 api(compose.runtime)
                 api(compose.foundation)

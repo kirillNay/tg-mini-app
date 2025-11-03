@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.CanvasBasedWindow
+import androidx.compose.ui.window.ComposeViewport
 import com.kirillNay.telegram.miniapp.webApp.EventType
 import com.kirillNay.telegram.miniapp.webApp.webApp
 import org.jetbrains.skiko.wasm.onWasmReady
@@ -24,7 +24,7 @@ fun telegramWebApp(
     content: @Composable (TelegramStyle) -> Unit
 ) {
     onWasmReady {
-        CanvasBasedWindow {
+        ComposeViewport {
             var paddings by remember { mutableStateOf(ViewPort(webApp.viewportHeight.dp, webApp.viewportStableHeight.dp)) }
             var colors by remember { mutableStateOf(TelegramColors.fromWebApp()) }
 

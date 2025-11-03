@@ -84,6 +84,12 @@ publishing {
     }
 }
 
+tasks.withType<Sign>().configureEach {
+    onlyIf {
+        !gradle.startParameter.taskNames.any { it.endsWith("publishToMavenLocal") }
+    }
+}
+
 // Signing artifacts. Signing.* extra properties values will be used
 signing {
     sign(publishing.publications)
