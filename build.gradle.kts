@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.compose")
 
     id("convention.publication")
@@ -22,7 +23,8 @@ allprojects {
 
 kotlin {
     js(IR) {
-        moduleName = "mini-app"
+        outputModuleName.set("mini-app")
+        browser()
         binaries.executable()
     }
     sourceSets {
@@ -34,8 +36,4 @@ kotlin {
             }
         }
     }
-}
-
-compose.experimental {
-    web.application {}
 }

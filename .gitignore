@@ -1,8 +1,10 @@
 .gradle
+.gradle-user/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+kotlin-js-store/
 local.properties
 secring.gpg
 
