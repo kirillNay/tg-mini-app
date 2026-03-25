@@ -1,0 +1,86 @@
+name: Coffee Order Demo JS
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coffee-order-demo-js-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-package:
+    name: Build, run, and package jsMain
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build production bundle
+        run: ./gradlew -p samples/coffee-order-demo :composeApp:jsBrowserProductionWebpack
+
+      - name: Prepare GitHub Pages artifact
+        run: |
+          SITE_DIR="$RUNNER_TEMP/coffee-order-demo-site"
+          mkdir -p "$SITE_DIR"
+          cp samples/coffee-order-demo/composeApp/build/processedResources/js/main/index.html "$SITE_DIR/"
+          cp samples/coffee-order-demo/composeApp/build/kotlin-webpack/js/productionExecutable/* "$SITE_DIR/"
+          touch "$SITE_DIR/.nojekyll"
+          find "$SITE_DIR" -maxdepth 1 -type f | sort
+
+      - name: Smoke test published bundle
+        run: |
+          SITE_DIR="$RUNNER_TEMP/coffee-order-demo-site"
+          python3 -m http.server 4173 --directory "$SITE_DIR" >/tmp/coffee-order-demo-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent --show-error http://127.0.0.1:4173/ | grep -q "<title>Coffee Order Demo</title>"
+          curl --fail --silent --show-error http://127.0.0.1:4173/composeApp.js >/dev/null
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/coffee-order-demo-site
+
+  deploy:
+    name: Deploy jsMain to GitHub Pages
+    needs: build-and-package
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
