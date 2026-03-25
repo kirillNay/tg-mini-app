@@ -10,7 +10,7 @@ Library for creating telegram [mini apps](https://core.telegram.org/bots/webapps
 ```
 3. Add implementation for `jsMain` `tg-mini-app` library:
 ```
-implementation("io.github.kirill:tg-mini-app:1.0.0")
+implementation("io.github.kirillNay:tg-mini-app:1.1.1")
 ```
 4. In `main` funtion of `jsMain` call `telegramWebApp` with providing Composable content:
 ```
@@ -66,6 +66,33 @@ In case your app contains more complicated scheme of theme setting like dynamic 
 
 Also in case your app suppports dynamic theme switching you can pass `animationDuration` to `telegramWebApp` to manage animation of theme switching.
 
-## Sample
+## Demo
 
-Check [GlassOfWater](https://github.com/kirillNay/GlassOfWater-client) - simple web app created with Kotlin and Compose Multiplatform.
+This repository also contains a demo application in [samples/coffee-order-demo](/Users/kirillnay/Documents/Development/tg-mini-app/tg-mini-app/samples/coffee-order-demo).
+
+The demo shows how to organize a multiplatform app when:
+
+- shared UI and state live in `commonMain`
+- `tg-mini-app` is used only in `jsMain`
+- Android and iOS reuse the same screens through demo hosts without direct Telegram dependencies
+
+### Demo run
+
+From the repository root:
+
+Web dev server:
+```bash
+./gradlew -p samples/coffee-order-demo :composeApp:jsBrowserDevelopmentRun
+```
+
+Android debug build:
+```bash
+./gradlew -p samples/coffee-order-demo :composeApp:assembleDebug
+```
+
+iOS simulator framework:
+```bash
+./gradlew -p samples/coffee-order-demo :composeApp:linkDebugFrameworkIosSimulatorArm64
+```
+
+More details are available in [samples/coffee-order-demo/README.md](/Users/kirillnay/Documents/Development/tg-mini-app/tg-mini-app/samples/coffee-order-demo/README.md).

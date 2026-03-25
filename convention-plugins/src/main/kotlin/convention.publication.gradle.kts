@@ -39,6 +39,10 @@ val javadocJar by tasks.registering(Jar::class) {
 }
 
 fun getExtraString(name: String) = ext[name]?.toString()
+val hasSigningConfiguration =
+    !getExtraString("signing.keyId").isNullOrBlank() &&
+        !getExtraString("signing.password").isNullOrBlank() &&
+        !getExtraString("signing.secretKeyRingFile").isNullOrBlank()
 
 publishing {
     // Configure maven central repository
@@ -86,5 +90,8 @@ publishing {
 
 // Signing artifacts. Signing.* extra properties values will be used
 signing {
-    sign(publishing.publications)
+    isRequired = hasSigningConfiguration
+    if (hasSigningConfiguration) {
+        sign(publishing.publications)
+    }
 }
