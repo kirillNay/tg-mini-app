@@ -1,98 +1,192 @@
-# Telegram mini app
-Library for creating telegram [mini apps](https://core.telegram.org/bots/webapps) with Kotlin Multiplatform and Compose Multiplatform.
+# tg-mini-app
 
-## Setup
-1. Create Kotlin Multiplatform app with js target. Check [this tutorial](https://www.jetbrains.com/lp/compose-multiplatform/) for more information.
+Kotlin Multiplatform library for building [Telegram Mini Apps](https://core.telegram.org/bots/webapps) with Compose Multiplatform on `jsMain`.
 
-2. Place script `telegram-web-app.js` in the `<head>` tag:
-```
+It provides:
+
+- a simple `telegramWebApp { ... }` entry point for Compose UI
+- a Kotlin-friendly wrapper over `window.Telegram.WebApp`
+- reactive access to Telegram theme colors and viewport values
+- typed access to buttons, popups, haptics, cloud storage, init data, and other WebApp APIs
+
+## Compatibility
+
+- Kotlin: `2.3.10`
+- Compose Multiplatform plugin: `1.10.0`
+- Telegram Mini Apps / Bot API coverage: wrapper includes APIs marked in the source up to Bot API `6.9`
+
+For Telegram features added in later Bot API versions, check the runtime version with `webApp.isVersionAtLeast(...)` before using them.
+
+## Requirements
+
+- Kotlin Multiplatform project with a browser `js` target
+- Compose Multiplatform UI rendered from `jsMain`
+- Telegram WebApp script included in your HTML host page
+
+## Installation
+
+Add the Telegram runtime script to your page:
+
+```html
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 ```
-3. Add implementation for `jsMain` `tg-mini-app` library:
+
+Add the library dependency:
+
+```kotlin
+dependencies {
+    implementation("io.github.kirillNay:tg-mini-app:1.1.1")
+}
 ```
-implementation("io.github.kirillNay:tg-mini-app:1.1.1")
-```
-4. In `main` funtion of `jsMain` call `telegramWebApp` with providing Composable content:
-```
+
+## Quick Start
+
+Use `telegramWebApp` as the entry point of your Telegram-hosted web app:
+
+```kotlin
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import com.kirillNay.telegram.miniapp.compose.telegramWebApp
+import com.kirillNay.telegram.miniapp.webApp.webApp
+
 fun main() {
-   telegramWebApp {
-      // Compose content ...
-   }
-}
-```
-## WebApp
+    telegramWebApp { style ->
+        LaunchedEffect(Unit) {
+            webApp.ready()
+            webApp.expand()
+        }
 
-To get access of Telegram web app instance call `webApp`. All properties and functions of [Telegram WebApp](https://core.telegram.org/bots/webapps#initializing-mini-apps) are available in kotlin style.
-
-### Example
-Showing confirmation dialog before closing app.
-```
-webApp.showConfirm("Want to exit?") { result ->
-  if (result) {
-      webApp.close()
-  }
-}
-```
-
-## Designing
-
-Mini apps should be designed to provide smooth user experience so pay attention of themeing of app. Check [Telegram's Design Guidelines](https://core.telegram.org/bots/webapps#design-guidelines) for more information.
-
-By default **tg-mini-app** use default Material Theme colors, but you can set your own color pallete. To do it just pass your own implementation of `ColorsConverter` to `telegramWebApp`. There you can define your own colors based on [Telegram App colors](https://telegram.org/blog/protected-content-delete-by-date-and-more/ru?setln=en#global-chat-themes-on-android) and current colorScheme (_light or dark_).
-All colors are available through `MaterialTheme.colors`.
-
-### Example
-Set colors adaptive to current Telegram chat themes and Color Scheme.
-```
-class CustomConverter : ColorsConverter {
-
-    override fun convert(themeParams: TelegramColors, colorScheme: ColorScheme): Colors = when(colorScheme) {
-        ColorScheme.DARK -> darkColors(
-            primary = themeParams.buttonColor,
-            onPrimary = themeParams.buttonTextColor,
-            background = themeParams.backgroundColor,
-        )
-        ColorScheme.LIGHT -> lightColors(
-            primary = themeParams.buttonColor,
-            onPrimary = themeParams.buttonTextColor,
-            background = themeParams.backgroundColor,
-        )
+        Surface(
+            color = style.colors.backgroundColor,
+        ) {
+            Text("Hello, ${webApp.initDataUnsafe.user?.firstName ?: "Telegram"}")
+        }
     }
-    
 }
 ```
 
-In case your app contains more complicated scheme of theme setting like dynamic theme switching, you should provide implementation of `ThemeHandler` that has only one filed - `Flow` of accepted colors. By default new colors accepted every time color scheme is changed.
+`telegramWebApp` gives your content a `TelegramStyle` instance with:
 
-Also in case your app suppports dynamic theme switching you can pass `animationDuration` to `telegramWebApp` to manage animation of theme switching.
+- `style.colors` - current Telegram theme colors mapped to Compose `Color`
+- `style.viewPort.viewPortHeight` - current visible Mini App height
+- `style.viewPort.viewportStableHeight` - stable viewport height for bottom-pinned UI
 
-## Demo
+Both viewport and theme values are refreshed when Telegram emits corresponding WebApp events.
 
-This repository also contains a demo application in [samples/coffee-order-demo](/Users/kirillnay/Documents/Development/tg-mini-app/tg-mini-app/samples/coffee-order-demo).
+## Compose Integration
 
-The demo shows how to organize a multiplatform app when:
+The library adds only a thin Compose integration layer:
 
-- shared UI and state live in `commonMain`
-- `tg-mini-app` is used only in `jsMain`
-- Android and iOS reuse the same screens through demo hosts without direct Telegram dependencies
+```kotlin
+telegramWebApp { style ->
+    App(
+        background = style.colors.backgroundColor,
+        primary = style.colors.buttonColor,
+        viewportHeight = style.viewPort.viewportStableHeight,
+    )
+}
+```
 
-### Demo run
+This makes it easy to keep Telegram-specific code near your `jsMain` entry point while the rest of your UI stays platform-agnostic.
 
-From the repository root:
+## WebApp API
 
-Web dev server:
+Use the global `webApp` instance to access Telegram Mini App features in Kotlin style.
+
+### Basic lifecycle
+
+```kotlin
+import com.kirillNay.telegram.miniapp.webApp.webApp
+
+webApp.ready()
+webApp.expand()
+webApp.enableClosingConfirmation(true)
+webApp.setBackgroundColor("bg_color")
+webApp.setHeaderColor("secondary_bg_color")
+```
+
+### Native confirmation popup
+
+```kotlin
+webApp.showConfirm("Exit checkout?") { isConfirmed ->
+    if (isConfirmed) {
+        webApp.close()
+    }
+}
+```
+
+### Main and back buttons
+
+```kotlin
+webApp.backButton.onClick { navigateBack() }
+webApp.backButton.show()
+
+webApp.mainButton
+    .setText("Pay")
+    .onClick { submitOrder() }
+    .show()
+```
+
+### Cloud storage
+
+```kotlin
+suspend fun saveDraft(note: String) {
+    webApp.cloudStorage.setItem("draft_note", note)
+}
+
+suspend fun loadDraft(): String {
+    return webApp.cloudStorage.getItem("draft_note").getOrDefault("")
+}
+```
+
+### Haptic feedback
+
+```kotlin
+webApp.hapticFeedback.impactOccurred("light")
+webApp.hapticFeedback.notificationOccurred("success")
+```
+
+## Runtime Notes
+
+- This library targets Telegram Mini App runtime on `jsMain`. It is not a general-purpose browser wrapper.
+- `window.Telegram.WebApp` must be available before you use `telegramWebApp` or `webApp`.
+- If you also run your web bundle outside Telegram, guard the Telegram-specific startup and show a browser placeholder or demo host instead.
+- Treat `initDataUnsafe` as untrusted client data. Validate `rawInitData` on your server as described in the [Telegram docs](https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app).
+
+## Demo Project
+
+The repository includes a complete sample in [`samples/coffee-order-demo`](samples/coffee-order-demo):
+
+- shared screens and business logic in `commonMain`
+- Telegram-specific host code isolated in `jsMain`
+- Android and iOS demo hosts reusing the same Compose UI
+
+Run the sample from the repository root:
+
 ```bash
 ./gradlew -p samples/coffee-order-demo :composeApp:jsBrowserDevelopmentRun
-```
-
-Android debug build:
-```bash
 ./gradlew -p samples/coffee-order-demo :composeApp:assembleDebug
-```
-
-iOS simulator framework:
-```bash
 ./gradlew -p samples/coffee-order-demo :composeApp:linkDebugFrameworkIosSimulatorArm64
 ```
 
-More details are available in [samples/coffee-order-demo/README.md](/Users/kirillnay/Documents/Development/tg-mini-app/tg-mini-app/samples/coffee-order-demo/README.md).
+More details are available in [`samples/coffee-order-demo/README.md`](samples/coffee-order-demo/README.md).
+
+## API Coverage
+
+The wrapper includes typed access to commonly used Telegram WebApp features, including:
+
+- init data and runtime metadata
+- viewport and color scheme
+- main button and back button
+- alerts, confirms, custom popups, QR scanner
+- links, invoices, clipboard access
+- contact and write-access requests
+- haptic feedback
+- cloud storage
+
+The API is designed to stay close to the official [Telegram Mini Apps documentation](https://core.telegram.org/bots/webapps), but exposed with Kotlin naming and suspend-friendly wrappers where it improves ergonomics.
+
+## License
+
+[MIT](LICENSE)
