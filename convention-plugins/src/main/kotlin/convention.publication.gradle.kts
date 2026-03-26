@@ -11,12 +11,11 @@ plugins {
 
 // Stub secrets to let the project sync and build without the publication values set up
 ext["signing.keyId"] = null
+ext["signing.secretKey"] = null
 ext["signing.password"] = null
 ext["signing.secretKeyRingFile"] = null
-ext["ossrhUsername"] = null
-ext["ossrhPassword"] = null
 
-// Grabbing secrets from local.properties file or from environment variables, which could be used on CI
+// Grabbing signing secrets from local.properties file or from environment variables, which could be used on CI
 val secretPropsFile = project.rootProject.file("local.properties")
 if (secretPropsFile.exists()) {
     secretPropsFile.reader().use {
@@ -28,10 +27,9 @@ if (secretPropsFile.exists()) {
     }
 } else {
     ext["signing.keyId"] = System.getenv("SIGNING_KEY_ID")
+    ext["signing.secretKey"] = System.getenv("SIGNING_KEY")
     ext["signing.password"] = System.getenv("SIGNING_PASSWORD")
     ext["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
-    ext["ossrhUsername"] = System.getenv("OSSRH_USERNAME")
-    ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
 }
 
 val javadocJar by tasks.registering(Jar::class) {
@@ -39,20 +37,16 @@ val javadocJar by tasks.registering(Jar::class) {
 }
 
 fun getExtraString(name: String) = ext[name]?.toString()
+val hasInMemorySigningConfiguration =
+    !getExtraString("signing.secretKey").isNullOrBlank() &&
+        !getExtraString("signing.password").isNullOrBlank()
+val hasFileSigningConfiguration =
+    !getExtraString("signing.keyId").isNullOrBlank() &&
+        !getExtraString("signing.password").isNullOrBlank() &&
+        !getExtraString("signing.secretKeyRingFile").isNullOrBlank()
+val hasSigningConfiguration = hasInMemorySigningConfiguration || hasFileSigningConfiguration
 
 publishing {
-    // Configure maven central repository
-    repositories {
-        maven {
-            name = "sonatype"
-            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = getExtraString("ossrhUsername")
-                password = getExtraString("ossrhPassword")
-            }
-        }
-    }
-
     // Configure all publications
     publications.withType<MavenPublication> {
         // Stub javadoc.jar artifact
@@ -86,5 +80,15 @@ publishing {
 
 // Signing artifacts. Signing.* extra properties values will be used
 signing {
-    sign(publishing.publications)
+    isRequired = hasSigningConfiguration
+    if (hasInMemorySigningConfiguration) {
+        useInMemoryPgpKeys(
+            getExtraString("signing.keyId"),
+            getExtraString("signing.secretKey"),
+            getExtraString("signing.password"),
+        )
+        sign(publishing.publications)
+    } else if (hasFileSigningConfiguration) {
+        sign(publishing.publications)
+    }
 }

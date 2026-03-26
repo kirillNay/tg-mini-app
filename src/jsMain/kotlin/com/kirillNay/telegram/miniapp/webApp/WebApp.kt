@@ -200,7 +200,7 @@ class WebApp internal constructor(
      *
      * A method that shows a native popup described by the params argument of the type PopupParams. The Mini App will receive the event popupClosed when the popup is closed. If an optional callback parameter was passed, the callback function will be called and the field id of the pressed button will be passed as the first argument.
      */
-    fun showPopup(params: PopupParams, callback: ((id: String) -> Unit)? = null) = jsDelegate.showPopup(params) { callback?.invoke(it) }
+    fun showPopup(params: PopupParams, callback: ((id: String) -> Unit)? = null) = jsDelegate.showPopup(params) { callback?.invoke(it.orEmpty()) }
 
     /**
      * Bot API 6.2+
@@ -233,13 +233,13 @@ class WebApp internal constructor(
      *
      * Note: this method can be called only for Mini Apps launched from the attachment menu and only in response to a user interaction with the Mini App interface (e.g. a click inside the Mini App or on the main button).
      */
-    fun readTextFromClipboard(onReceivedText: ((text: String) -> Unit)? = null) = jsDelegate.readTextFromClipboard { onReceivedText?.invoke(it) }
+    fun readTextFromClipboard(onReceivedText: ((text: String) -> Unit)? = null) = jsDelegate.readTextFromClipboard { onReceivedText?.invoke(it.orEmpty()) }
 
     /**
      * A method that requests text from the clipboard as a suspend function.
      */
     suspend fun readTextFromClipboard(): String = suspendCoroutine { continuation ->
-        jsDelegate.readTextFromClipboard { continuation.resume(it) }
+        jsDelegate.readTextFromClipboard { continuation.resume(it.orEmpty()) }
     }
 
     /**

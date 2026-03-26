@@ -8,6 +8,6 @@ enum class ChatType(val value: String) {
 
     GROUPS("groups"),
 
-    CHANNEL("channel")
+    CHANNEL("channels")
 
 }

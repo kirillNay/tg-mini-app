@@ -12,7 +12,7 @@ external class WebAppUser {
      * It has at most 52 significant bits, so a 64-bit integer or a double-precision float type is safe for storing this identifier.
      */
     @JsName("id")
-    val id: Int
+    val id: Long
 
     /**
      * Optional. True, if this user is a bot. Returns in the [WebAppInitData.receiver] field only.
