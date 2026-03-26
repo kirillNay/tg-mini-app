@@ -35,7 +35,7 @@ Add the library dependency:
 
 ```kotlin
 dependencies {
-    implementation("io.github.kirillNay:tg-mini-app:1.1.1")
+    implementation("io.github.kirillNay:tg-mini-app:1.2.0")
 }
 ```
 
