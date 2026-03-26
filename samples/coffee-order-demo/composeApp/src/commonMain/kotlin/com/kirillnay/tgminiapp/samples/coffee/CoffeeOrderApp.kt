@@ -22,8 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -497,12 +495,12 @@ private fun HeaderCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
                 text = "Coffee Order Demo",
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -515,15 +513,11 @@ private fun HeaderCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                StatusChip(label = environment.platformLabel)
-                StatusChip(label = environment.themeLabel)
-                StatusChip(label = "Cart $totalItems")
-                StatusChip(label = formatPrice(totalPrice))
-            }
+            EnvironmentSummary(
+                environment = environment,
+                totalItems = totalItems,
+                totalPrice = totalPrice,
+            )
             Text(
                 text = checkoutStatus,
                 style = MaterialTheme.typography.bodySmall,
@@ -534,15 +528,49 @@ private fun HeaderCard(
 }
 
 @Composable
-private fun StatusChip(label: String) {
-    AssistChip(
-        onClick = {},
-        label = { Text(label) },
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            labelColor = MaterialTheme.colorScheme.onSurface,
-        ),
-    )
+private fun EnvironmentSummary(
+    environment: AppEnvironment,
+    totalItems: Int,
+    totalPrice: Int,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                shape = RoundedCornerShape(14.dp),
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        EnvironmentLine(label = "Platform", value = environment.platformLabel)
+        EnvironmentLine(label = "Theme", value = environment.themeLabel)
+        EnvironmentLine(label = "Cart", value = "$totalItems items, ${formatPrice(totalPrice)}")
+    }
+}
+
+@Composable
+private fun EnvironmentLine(
+    label: String,
+    value: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium,
+        )
+    }
 }
 
 @Composable
