@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "io.github.kirillNay"
-version = "1.2.0-alpha"
+version = "1.2.0-alpha01"
 
 repositories {
     mavenCentral()
