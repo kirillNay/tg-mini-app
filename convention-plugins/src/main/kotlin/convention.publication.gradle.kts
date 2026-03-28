@@ -37,6 +37,14 @@ val javadocJar by tasks.registering(Jar::class) {
 }
 
 fun getExtraString(name: String) = ext[name]?.toString()
+fun normalizeSecretKey(secretKey: String?): String? =
+    secretKey
+        ?.replace("\r\n", "\n")
+        ?.replace("\\n", "\n")
+        ?.trim()
+
+ext["signing.secretKey"] = normalizeSecretKey(getExtraString("signing.secretKey"))
+
 val hasInMemorySigningConfiguration =
     !getExtraString("signing.secretKey").isNullOrBlank() &&
         !getExtraString("signing.password").isNullOrBlank()

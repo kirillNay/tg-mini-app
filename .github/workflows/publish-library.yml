@@ -44,6 +44,11 @@ jobs:
             fi
           done
 
+          if [[ "${SIGNING_KEY}" != *"BEGIN PGP PRIVATE KEY BLOCK"* ]]; then
+            echo "::error::SIGNING_KEY must contain an ASCII-armored private key exported with gpg --armor --export-secret-keys"
+            exit 1
+          fi
+
       - name: Build and publish to Sonatype
         shell: bash
         env:
