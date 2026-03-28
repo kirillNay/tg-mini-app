@@ -34,8 +34,7 @@ kotlin {
         browser {
             commonWebpackConfig {
                 devServer = (devServer ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.DevServer()).apply {
-                    open = false
-                    static = (static ?: mutableListOf())
+                    open = true
                 }
             }
         }
@@ -54,7 +53,7 @@ kotlin {
             implementation("androidx.activity:activity-compose:1.12.0")
         }
         jsMain.dependencies {
-            implementation("io.github.kirillNay:tg-mini-app:1.1.1")
+            implementation("io.github.kirillNay:tg-mini-app:1.2.0-alpha01")
         }
     }
 }

@@ -1,5 +1,10 @@
 # tg-mini-app
 
+[![tg-mini-app](https://img.shields.io/badge/tg--mini--app-1.2.0--alpha01-2ea44f?logo=kotlin&logoColor=white)](https://central.sonatype.com/search?q=io.github.kirillNay%3Atg-mini-app)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
+[![Compose%20Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.10.0-4285F4?logo=jetpackcompose&logoColor=white)](https://www.jetbrains.com/compose-multiplatform/)
+[![Telegram%20Mini%20Apps%20API](https://img.shields.io/badge/Telegram%20Mini%20Apps%20API-6.9-26A5E4?logo=telegram&logoColor=white)](https://core.telegram.org/bots/webapps)
+
 Kotlin Multiplatform library for building [Telegram Mini Apps](https://core.telegram.org/bots/webapps) with Compose Multiplatform on `jsMain`.
 
 It provides:
@@ -35,7 +40,7 @@ Add the library dependency:
 
 ```kotlin
 dependencies {
-    implementation("io.github.kirillNay:tg-mini-app:1.2.0")
+    implementation("io.github.kirillNay:tg-mini-app:1.2.0-alpha01")
 }
 ```
 
