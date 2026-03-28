@@ -32,10 +32,6 @@ if (secretPropsFile.exists()) {
     ext["signing.secretKeyRingFile"] = System.getenv("SIGNING_SECRET_KEY_RING_FILE")
 }
 
-val javadocJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
-}
-
 fun getExtraString(name: String) = ext[name]?.toString()
 fun normalizeSecretKey(secretKey: String?): String? =
     secretKey
@@ -57,8 +53,14 @@ val hasSigningConfiguration = hasInMemorySigningConfiguration || hasFileSigningC
 publishing {
     // Configure all publications
     publications.withType<MavenPublication> {
-        // Stub javadoc.jar artifact
-        artifact(javadocJar.get())
+        val publicationJavadocJar =
+            tasks.register("${this@withType.name}JavadocJar", Jar::class) {
+            archiveBaseName.set("${project.name}-${this@withType.name}")
+            archiveClassifier.set("javadoc")
+        }
+
+        // Use a dedicated javadoc artifact per publication to avoid signing task output collisions.
+        artifact(publicationJavadocJar)
 
         // Provide artifacts information requited by Maven Central
         pom {
