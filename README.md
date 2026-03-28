@@ -167,6 +167,8 @@ The repository includes a complete sample in [`samples/coffee-order-demo`](sampl
 - Telegram-specific host code isolated in `jsMain`
 - Android and iOS demo hosts reusing the same Compose UI
 
+You can also try the Telegram demo bot at `@tgminiapp_demo_bot` or open it directly: [t.me/tgminiapp_demo_bot/demo](https://t.me/tgminiapp_demo_bot/demo).
+
 Run the sample from the repository root:
 
 ```bash
