@@ -19,8 +19,32 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whether version was bumped
+        id: version-gate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+            echo "Initial push detected; publishing is allowed."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git show "${{ github.event.before }}:build.gradle.kts" > /tmp/base-build.gradle.kts
+
+          if bash scripts/ci/validate-version-bump.sh /tmp/base-build.gradle.kts build.gradle.kts; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version was not bumped. Publish steps will be skipped."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Set up JDK 21
+        if: steps.version-gate.outputs.should_publish == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -28,6 +52,7 @@ jobs:
           cache: gradle
 
       - name: Validate publication secrets
+        if: steps.version-gate.outputs.should_publish == 'true'
         shell: bash
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -49,7 +74,12 @@ jobs:
             exit 1
           fi
 
+      - name: Skip publish without version bump
+        if: steps.version-gate.outputs.should_publish != 'true'
+        run: echo "No library version bump detected. Publish was skipped."
+
       - name: Build and publish to Sonatype
+        if: steps.version-gate.outputs.should_publish == 'true'
         shell: bash
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
