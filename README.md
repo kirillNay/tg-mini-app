@@ -1,6 +1,6 @@
 # tg-mini-app
 
-[![tg-mini-app](https://img.shields.io/badge/tg--mini--app-1.2.0--alpha01-2ea44f?logo=kotlin&logoColor=white)](https://central.sonatype.com/search?q=io.github.kirillNay%3Atg-mini-app)
+[![tg-mini-app](https://img.shields.io/badge/tg--mini--app-1.2.0-2ea44f?logo=kotlin&logoColor=white)](https://central.sonatype.com/search?q=io.github.kirillNay%3Atg-mini-app)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Compose%20Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.10.0-4285F4?logo=jetpackcompose&logoColor=white)](https://www.jetbrains.com/compose-multiplatform/)
 [![Telegram%20Mini%20Apps%20API](https://img.shields.io/badge/Telegram%20Mini%20Apps%20API-6.9-26A5E4?logo=telegram&logoColor=white)](https://core.telegram.org/bots/webapps)
@@ -40,7 +40,7 @@ Add the library dependency:
 
 ```kotlin
 dependencies {
-    implementation("io.github.kirillNay:tg-mini-app:1.2.0-alpha01")
+    implementation("io.github.kirillNay:tg-mini-app:1.2.0")
 }
 ```
 
@@ -166,6 +166,8 @@ The repository includes a complete sample in [`samples/coffee-order-demo`](sampl
 - shared screens and business logic in `commonMain`
 - Telegram-specific host code isolated in `jsMain`
 - Android and iOS demo hosts reusing the same Compose UI
+
+You can also try the Telegram demo bot at `@tgminiapp_demo_bot` or open it directly: [t.me/tgminiapp_demo_bot/demo](https://t.me/tgminiapp_demo_bot/demo).
 
 Run the sample from the repository root:
 
