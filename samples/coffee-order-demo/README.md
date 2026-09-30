@@ -3,15 +3,15 @@
 Example Compose Multiplatform application that lives in `samples/` and demonstrates how to structure a project when:
 
 - shared UI and business state live in `commonMain`
-- `tg-mini-app` is used only from `jsMain`
+- `tg-mini-app` is used only from `webMain` (shared by the `js` and `wasmJs` targets)
 - Android and iOS reuse the same screens through demo hosts without direct Telegram dependencies
 
 ## Structure
 
 - `composeApp/src/commonMain` - shared UI, catalog, cart, checkout, settings, platform bridge contract
-- `composeApp/src/jsMain` - real Telegram Mini App host, `telegramWebApp`, WebApp buttons, CloudStorage/localStorage bridge
-- `composeApp/src/androidMain` - Android demo host
+- `composeApp/src/webMain` - real Telegram Mini App host, `telegramWebApp`, WebApp buttons, CloudStorage/localStorage bridge
 - `composeApp/src/iosMain` - iOS `MainViewController` for a native host app
+- `androidApp` - Android demo host application (AGP 9 keeps the Android app in its own module; `composeApp` is a KMP library)
 
 ## Run
 
@@ -19,19 +19,23 @@ All commands below are expected from the repository root:
 
 ### Web
 
-Development server:
+Development server (Wasm or JS):
+
+```bash
+./gradlew -p samples/coffee-order-demo :composeApp:wasmJsBrowserDevelopmentRun
+```
 
 ```bash
 ./gradlew -p samples/coffee-order-demo :composeApp:jsBrowserDevelopmentRun
 ```
 
-Production bundle:
+Production bundle with Wasm and an automatic JS fallback for browsers without WasmGC, written to `composeApp/build/dist/composeWebCompatibility/productionExecutable`:
 
 ```bash
-./gradlew -p samples/coffee-order-demo :composeApp:jsBrowserProductionWebpack
+./gradlew -p samples/coffee-order-demo :composeApp:composeCompatibilityBrowserDistribution
 ```
 
-For a real Telegram Mini App, point your web host to the generated web bundle and open it from Telegram. The web sample uses `telegramWebApp` only in `jsMain`.
+For a real Telegram Mini App, point your web host to the generated web bundle and open it from Telegram. Opened in a regular browser, the sample shows a placeholder through `telegramWebApp(fallback = ...)`.
 
 ### Android
 
@@ -43,16 +47,16 @@ Before the first Android build, point Gradle to your SDK in one of two ways:
 Build debug APK:
 
 ```bash
-./gradlew -p samples/coffee-order-demo :composeApp:assembleDebug
+./gradlew -p samples/coffee-order-demo :androidApp:assembleDebug
 ```
 
 Install to a connected device or emulator:
 
 ```bash
-./gradlew -p samples/coffee-order-demo :composeApp:installDebug
+./gradlew -p samples/coffee-order-demo :androidApp:installDebug
 ```
 
-You can also open `samples/coffee-order-demo` as a Gradle project in Android Studio and run the `composeApp` Android configuration.
+You can also open `samples/coffee-order-demo` as a Gradle project in Android Studio and run the `androidApp` configuration. The sample compiles against Android API 37.
 
 ### iOS
 
@@ -101,6 +105,6 @@ struct SampleHostApp: App {
 
 - shared catalog, cart, checkout, and settings screens
 - platform-specific bridge abstraction for host features
-- Telegram back button and main button wiring on Web
+- Telegram back button and main button wiring on Web, content safe area padding
 - Telegram CloudStorage usage with localStorage fallback on Web
 - native demo hosts on Android and iOS that reuse the same Compose UI

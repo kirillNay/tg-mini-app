@@ -506,7 +506,7 @@ private fun HeaderCard(
             )
             Text(
                 text = if (environment.isTelegramRuntime) {
-                    "Shared Compose UI with real Telegram WebApp integration in jsMain."
+                    "Shared Compose UI with real Telegram WebApp integration in webMain."
                 } else {
                     "Shared Compose UI running in a native demo host outside Telegram."
                 },

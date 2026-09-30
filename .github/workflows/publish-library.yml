@@ -13,12 +13,14 @@ jobs:
   publish:
     name: Build and publish library
     runs-on: ubuntu-latest
+    # Protect this environment with required reviewers to approve every publication.
+    environment: maven-central
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -45,7 +47,7 @@ jobs:
 
       - name: Set up JDK 21
         if: steps.version-gate.outputs.should_publish == 'true'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -78,13 +80,24 @@ jobs:
         if: steps.version-gate.outputs.should_publish != 'true'
         run: echo "No library version bump detected. Publish was skipped."
 
-      - name: Build and publish to Sonatype
+      - name: Build and publish to Maven Central
         if: steps.version-gate.outputs.should_publish == 'true'
         shell: bash
         env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew --no-daemon build publishToSonatype closeAndReleaseStagingRepositories
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+        run: ./gradlew --no-daemon build publishToMavenCentral
+
+      - name: Create GitHub Release
+        if: steps.version-gate.outputs.should_publish == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version=$(bash scripts/ci/read-version.sh build.gradle.kts)
+          bash scripts/release/changelog-section.sh "$version" > /tmp/release-notes.md
+          gh release create "v$version" --target "${{ github.sha }}" --title "v$version" --notes-file /tmp/release-notes.md

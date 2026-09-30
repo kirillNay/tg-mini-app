@@ -1,0 +1,56 @@
+name: Claude Monthly Maintenance
+
+on:
+  schedule:
+    - cron: "0 6 1 * *" # 06:00 UTC on the 1st of every month
+  workflow_dispatch:
+
+concurrency:
+  group: claude-maintenance
+  cancel-in-progress: false
+
+jobs:
+  maintenance:
+    name: Update dependencies and Telegram API
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    env:
+      E2E_INSTALL_DEPS: "1"
+      # Full verification takes longer than the default Bash tool timeout.
+      BASH_DEFAULT_TIMEOUT_MS: "1800000"
+      BASH_MAX_TIMEOUT_MS: "3600000"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: develop
+          fetch-depth: 0
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Ensure labels exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh label create automated-maintenance --color 5319e7 --description "Opened by the maintenance agent" --force
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            DATE: run `date -u +%F` for the current date.
+
+            Follow the instructions in `.github/claude/maintenance.md`.
+          claude_args: |
+            --max-turns 300
+            --allowedTools "Read,Write,Edit,MultiEdit,Glob,Grep,LS,TodoWrite,WebFetch,WebSearch,Bash(./gradlew:*),Bash(bash scripts/*),Bash(git:*),Bash(gh:*),Bash(curl:*),Bash(npm:*),Bash(npx:*),Bash(date:*),Bash(ls:*),Bash(cat:*),Bash(grep:*),Bash(find:*),Bash(diff:*),Bash(python3:*)"

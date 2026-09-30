@@ -1,9 +1,8 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        mavenCentral()
         google()
-        maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     }
 
     plugins {
@@ -17,4 +16,3 @@ pluginManagement {
 }
 
 rootProject.name = "tg-mini-app"
-includeBuild("convention-plugins")

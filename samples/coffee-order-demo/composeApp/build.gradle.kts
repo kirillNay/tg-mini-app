@@ -1,25 +1,24 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    id("com.android.application")
+    id("com.android.kotlin.multiplatform.library")
     kotlin("multiplatform")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.compose")
 }
 
+val composeVersion = property("compose.version") as String
+val material3Version = property("compose.material3.version") as String
+
 kotlin {
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
+    android {
+        namespace = "com.kirillnay.tgminiapp.samples.coffee.shared"
+        compileSdk = 37
+        minSdk = 24
     }
 
-    val iosX64 = iosX64()
     val iosArm64 = iosArm64()
     val iosSimulatorArm64 = iosSimulatorArm64()
 
     listOf(
-        iosX64,
         iosArm64,
         iosSimulatorArm64,
     ).forEach { iosTarget ->
@@ -29,7 +28,8 @@ kotlin {
         }
     }
 
-    js(IR) {
+    js {
+        compilerOptions.optIn.add("kotlin.js.ExperimentalWasmJsInterop")
         outputModuleName.set("coffee-order-demo")
         browser {
             commonWebpackConfig {
@@ -41,47 +41,29 @@ kotlin {
         binaries.executable()
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        compilerOptions.optIn.add("kotlin.js.ExperimentalWasmJsInterop")
+        outputModuleName.set("coffee-order-demo")
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+        binaries.executable()
+    }
+
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+            api("org.jetbrains.compose.runtime:runtime:$composeVersion")
+            api("org.jetbrains.compose.foundation:foundation:$composeVersion")
+            implementation("org.jetbrains.compose.material3:material3:$material3Version")
+            api("org.jetbrains.compose.ui:ui:$composeVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
         }
-        androidMain.dependencies {
-            implementation("androidx.activity:activity-compose:1.12.0")
-        }
-        jsMain.dependencies {
-            implementation("io.github.kirillNay:tg-mini-app:1.2.0")
+        webMain.dependencies {
+            implementation("io.github.kirillNay:tg-mini-app:2.0.0")
         }
     }
 }
 
-android {
-    namespace = "com.kirillnay.tgminiapp.samples.coffee"
-    compileSdk = 36
-
-    defaultConfig {
-        applicationId = "com.kirillnay.tgminiapp.samples.coffee"
-        minSdk = 24
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-}

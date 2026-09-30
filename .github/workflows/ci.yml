@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  library:
+    name: Library (js + wasmJs tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Build and run unit and Compose UI tests in headless Chrome
+        run: ./gradlew --no-daemon build
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: library-test-reports
+          path: build/reports/tests
+
+  sample-web-e2e:
+    name: Sample web E2E (wasm + js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: samples/coffee-order-demo/e2e/package-lock.json
+      - name: Build web distributions
+        run: ./gradlew --no-daemon -p samples/coffee-order-demo :composeApp:composeCompatibilityBrowserDistribution :composeApp:jsBrowserDistribution
+      - name: Run Playwright tests
+        working-directory: samples/coffee-order-demo/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            samples/coffee-order-demo/e2e/playwright-report
+            samples/coffee-order-demo/e2e/test-results
+
+  sample-android:
+    name: Sample Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Build debug APK
+        run: ./gradlew --no-daemon -p samples/coffee-order-demo :androidApp:assembleDebug
+
+  sample-ios:
+    name: Sample iOS
+    # macOS runners are slow and expensive, so iOS is checked only in the release gate.
+    if: github.base_ref == 'master' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Link iOS simulator framework
+        run: ./gradlew --no-daemon -p samples/coffee-order-demo :composeApp:linkDebugFrameworkIosSimulatorArm64
