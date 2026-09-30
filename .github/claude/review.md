@@ -11,7 +11,7 @@ Review for problems that matter, not for style preferences:
 2. **Public API**: consistency with existing naming and patterns, KDoc with the correct `Bot API x.y+`,
    no internal types leaking into the public API.
 3. **Tests**: every new or changed behavior is covered (`WebAppCallsTest`, `WebAppTest`,
-   `TelegramWebAppContentTest`, Playwright E2E for sample flows). Tests were not weakened, skipped or deleted
+   `TelegramWebAppContentTest`, Playwright E2E for sample flows). New API is also shown in the showcase catalog. Tests were not weakened, skipped or deleted
    without a convincing reason.
 4. **Versions**: upgrades are stable releases and mutually compatible; deprecations were handled, not suppressed.
 5. **Release**: the semver bump matches the public API diff (breaking → major, new API → minor, else patch);

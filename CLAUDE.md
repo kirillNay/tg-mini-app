@@ -26,21 +26,22 @@ Tests live in `src/webTest` and run in headless Chrome through Karma, once per t
 
 If a build fails with "Lock file was changed", run `./gradlew kotlinUpgradeYarnLock`. Maven Central sometimes answers 403 from this machine; rerunning the build fixes it.
 
-Sample app (`samples/coffee-order-demo`, a separate Gradle build; run from repo root):
+Sample app (`samples/showcase`, a separate Gradle build; run from repo root):
 
 ```bash
-./gradlew -p samples/coffee-order-demo :composeApp:wasmJsBrowserDevelopmentRun
-./gradlew -p samples/coffee-order-demo :composeApp:composeCompatibilityBrowserDistribution   # what CI deploys
-./gradlew -p samples/coffee-order-demo :androidApp:assembleDebug
-./gradlew -p samples/coffee-order-demo :composeApp:linkDebugFrameworkIosSimulatorArm64
+./gradlew -p samples/showcase :composeApp:wasmJsBrowserDevelopmentRun
+./gradlew -p samples/showcase :composeApp:composeCompatibilityBrowserDistribution   # what CI deploys
+./gradlew -p samples/showcase :androidApp:assembleDebug
+./gradlew -p samples/showcase :composeApp:linkDebugFrameworkIosSimulatorArm64
 ```
 
 The sample's `settings.gradle.kts` does `includeBuild("../..")`, so its `io.github.kirillNay:tg-mini-app` dependency is **substituted with the local library source**.
 
-Playwright E2E tests of the web sample live in `samples/coffee-order-demo/e2e`. Build the dists first (`:composeApp:composeCompatibilityBrowserDistribution :composeApp:jsBrowserDistribution`), then run `npm ci && npx playwright test`. Each scenario runs against both the wasm and js bundles.
+Playwright E2E tests of the web sample live in `samples/showcase/e2e`. Build the dists first (`:composeApp:composeCompatibilityBrowserDistribution :composeApp:jsBrowserDistribution`), then run `npm ci && npx playwright test`. Each scenario runs against both the wasm and js bundles.
 - **Launch:** `openInTelegram` passes launch parameters in the URL hash and installs a `TelegramWebviewProxy` that records every `postEvent` of telegram-web-app.js.
 - **Assertions:** tests assert on those posted events and simulate the client with `Telegram.WebView.receiveEvent`.
-- **Clicks:** UI elements are found through Compose's accessibility tree (`getByRole`). Click them with `tap()`, which sends a real pointer event: the canvas intercepts Playwright's normal clicks.
+- **Clicks:** UI elements are found through Compose's accessibility tree (`getByRole`). Click them with `tap()`, which sends a real pointer event after the element stops moving: the canvas intercepts Playwright's normal clicks.
+- **Scrolling:** lazy lists compose only visible items, so use `scrollTo` / `scrollAndTap` / `openScreen`. The accessibility tree does not expose disabled buttons; assert unavailability through the note text and the absence of posted events.
 
 To check the web sample by hand in a Mini App context without Telegram:
 1. Serve `build/dist/composeWebCompatibility/productionExecutable`.
@@ -75,10 +76,15 @@ Pitfalls here:
 
 ## Sample architecture
 
-`samples/coffee-order-demo` shows how consumers should structure an app.
-- **`composeApp`** is a KMP *library* (`com.android.kotlin.multiplatform.library`, as required by AGP 9) for Android, iOS, js and wasmJs. All UI and state live in `commonMain` behind the `PlatformAppBridge` interface.
-- **`webMain`** is the only place that depends on `tg-mini-app`: `Main.kt` and `TelegramPlatformBridge`.
-- **`androidApp`** holds the Android application (`MainActivity`). The sample's root `build.gradle.kts` declares all plugins with `apply false` so both modules share build services.
+`samples/showcase` is a catalog of every Telegram Mini Apps capability wrapped by the library, and an example of how to structure a multiplatform app around it.
+- **`commonMain`** has no Telegram dependency:
+  - `Catalog.kt` lists sections and `Feature`s: id, unique action label, minimum Bot API version, inputs.
+  - `ShowcaseApp` is the shared UI.
+  - `ShowcasePlatform` is the host contract; `OutsideTelegramPlatform` is the host with nothing available.
+- **`webMain`** is the only place that depends on `tg-mini-app`. `TelegramShowcasePlatform` runs each feature id with the real API, logs every `WebAppEvent`, collects launch data and gates features by `isVersionAtLeast`. Outside Telegram, `Main.kt` renders the catalog with `OutsideTelegramPlatform` through `telegramWebApp(fallback = ...)`.
+- **Android and iOS** (`androidApp`, `iosMain`) show the same catalog with every feature unavailable.
+- When the library gains an API, add a `Feature` to `Catalog.kt`, its branch in `TelegramShowcasePlatform.run` and, for key flows, a Playwright scenario.
+- **`androidApp`** is a separate module because of AGP 9: `composeApp` is a KMP library (`com.android.kotlin.multiplatform.library`). The sample's root `build.gradle.kts` declares all plugins with `apply false` so both modules share build services.
 
 ## Automation (Claude agents in GitHub Actions)
 

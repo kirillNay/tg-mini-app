@@ -16,12 +16,12 @@ if [[ "${SKIP_ANDROID:-0}" != "1" ]]; then
 fi
 
 echo "::group::Sample builds"
-./gradlew --no-daemon -p samples/coffee-order-demo "${sample_tasks[@]}"
+./gradlew --no-daemon -p samples/showcase "${sample_tasks[@]}"
 echo "::endgroup::"
 
 echo "::group::Web sample E2E"
 (
-    cd samples/coffee-order-demo/e2e
+    cd samples/showcase/e2e
     npm ci
     if [[ "${E2E_INSTALL_DEPS:-0}" == "1" ]]; then
         npx playwright install --with-deps chromium
