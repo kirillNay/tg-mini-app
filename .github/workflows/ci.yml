@@ -48,11 +48,11 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: samples/coffee-order-demo/e2e/package-lock.json
+          cache-dependency-path: samples/showcase/e2e/package-lock.json
       - name: Build web distributions
-        run: ./gradlew --no-daemon -p samples/coffee-order-demo :composeApp:composeCompatibilityBrowserDistribution :composeApp:jsBrowserDistribution
+        run: ./gradlew --no-daemon -p samples/showcase :composeApp:composeCompatibilityBrowserDistribution :composeApp:jsBrowserDistribution
       - name: Run Playwright tests
-        working-directory: samples/coffee-order-demo/e2e
+        working-directory: samples/showcase/e2e
         run: |
           npm ci
           npx playwright install --with-deps chromium
@@ -63,8 +63,8 @@ jobs:
         with:
           name: playwright-report
           path: |
-            samples/coffee-order-demo/e2e/playwright-report
-            samples/coffee-order-demo/e2e/test-results
+            samples/showcase/e2e/playwright-report
+            samples/showcase/e2e/test-results
 
   sample-android:
     name: Sample Android
@@ -77,7 +77,7 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v6
       - name: Build debug APK
-        run: ./gradlew --no-daemon -p samples/coffee-order-demo :androidApp:assembleDebug
+        run: ./gradlew --no-daemon -p samples/showcase :androidApp:assembleDebug
 
   sample-ios:
     name: Sample iOS
@@ -92,4 +92,4 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v6
       - name: Link iOS simulator framework
-        run: ./gradlew --no-daemon -p samples/coffee-order-demo :composeApp:linkDebugFrameworkIosSimulatorArm64
+        run: ./gradlew --no-daemon -p samples/showcase :composeApp:linkDebugFrameworkIosSimulatorArm64

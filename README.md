@@ -194,26 +194,26 @@ webApp.hapticFeedback.notificationOccurred(HapticFeedback.NotificationType.SUCCE
 - For the `js` target the library waits for the Skiko runtime before rendering; for `wasmJs` it renders right away. To serve both, build the sample-style `composeCompatibilityBrowserDistribution`, which picks Wasm and falls back to JS in browsers without WasmGC.
 - Treat `initDataUnsafe` as untrusted client data. Validate `rawInitData` on your server as described in the [Telegram docs](https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app).
 
-## Demo Project
+## Showcase
 
-The repository includes a complete sample in [`samples/coffee-order-demo`](samples/coffee-order-demo):
+The repository includes [`samples/showcase`](samples/showcase), a catalog of every Telegram Mini Apps capability wrapped by the library: buttons, popups, haptics, links, sharing, storages, biometrics, location, motion sensors, launch data and a live event log. Each feature shows the Bot API version it needs and is disabled when the Telegram app is older.
 
-- shared screens and business logic in `commonMain`
+- shared catalog and UI in `commonMain`
 - Telegram-specific host code isolated in `webMain` (built for `js` and `wasmJs`)
-- Android (`androidApp` module) and iOS demo hosts reusing the same Compose UI
+- Android (`androidApp` module) and iOS hosts reusing the same Compose UI without Telegram
 
-You can also try the Telegram demo bot at `@tgminiapp_demo_bot` or open it directly: [t.me/tgminiapp_demo_bot/demo](https://t.me/tgminiapp_demo_bot/demo).
+Open it in Telegram with `@tgminiapp_demo_bot`: [t.me/tgminiapp_demo_bot/demo](https://t.me/tgminiapp_demo_bot/demo).
 
-Run the sample from the repository root:
+Run it from the repository root:
 
 ```bash
-./gradlew -p samples/coffee-order-demo :composeApp:wasmJsBrowserDevelopmentRun
-./gradlew -p samples/coffee-order-demo :composeApp:jsBrowserDevelopmentRun
-./gradlew -p samples/coffee-order-demo :androidApp:assembleDebug
-./gradlew -p samples/coffee-order-demo :composeApp:linkDebugFrameworkIosSimulatorArm64
+./gradlew -p samples/showcase :composeApp:wasmJsBrowserDevelopmentRun
+./gradlew -p samples/showcase :composeApp:jsBrowserDevelopmentRun
+./gradlew -p samples/showcase :androidApp:assembleDebug
+./gradlew -p samples/showcase :composeApp:linkDebugFrameworkIosSimulatorArm64
 ```
 
-More details are available in [`samples/coffee-order-demo/README.md`](samples/coffee-order-demo/README.md).
+More details are available in [`samples/showcase/README.md`](samples/showcase/README.md).
 
 ## API Coverage
 
