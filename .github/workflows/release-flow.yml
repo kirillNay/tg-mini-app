@@ -3,21 +3,30 @@ name: Release Flow
 # develop gets a version bump (from a maintenance PR)  -> open "Release x.y.z" PR develop -> master.
 # master gets a release                                -> open a sync PR master -> develop.
 # PRs are opened through Claude's GitHub App, so CI and reviews run on them (GITHUB_TOKEN events don't trigger workflows).
+# claude-code-action does not support `push`, so the flow reacts to the workflows that run on those pushes:
+# "Showcase Web" runs on every push to develop, "Publish Library" on every push to master.
+# workflow_run always uses this file from the default branch (master).
 on:
-  push:
-    branches:
-      - develop
-      - master
+  workflow_run:
+    workflows:
+      - Showcase Web
+      - Coffee Order Demo JS # the demo workflow's name before the showcase rename; remove once develop has "Showcase Web"
+      - Publish Library
+    types:
+      - completed
   workflow_dispatch:
 
 concurrency:
-  group: release-flow-${{ github.ref }}
+  group: release-flow-${{ github.event.workflow_run.head_branch || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   release-pr:
     name: Open release PR
-    if: github.ref == 'refs/heads/develop'
+    if: >-
+      (github.event_name == 'workflow_run' && github.event.workflow_run.name != 'Publish Library'
+        && github.event.workflow_run.head_branch == 'develop' && github.event.workflow_run.event == 'push')
+      || (github.event_name == 'workflow_dispatch' && github.ref_name == 'develop')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,6 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: develop
           fetch-depth: 0
       - name: Check whether develop has an unreleased version
         id: check
@@ -63,7 +73,10 @@ jobs:
 
   sync-develop:
     name: Open sync PR into develop
-    if: github.ref == 'refs/heads/master'
+    if: >-
+      (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Publish Library'
+        && github.event.workflow_run.conclusion == 'success')
+      || (github.event_name == 'workflow_dispatch' && github.ref_name == 'master')
     runs-on: ubuntu-latest
     permissions:
       contents: read
