@@ -1,85 +1,73 @@
-import java.util.Properties
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
 
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.compose")
-    id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
-
-    id("convention.publication")
+    id("com.vanniktech.maven.publish") version "0.37.0"
 }
 
 group = "io.github.kirillNay"
-version = "1.2.0"
+version = "2.0.0"
+
+val composeVersion = property("compose.version") as String
 
 repositories {
+    google()
     mavenCentral()
 }
 
-val publicationSecrets = Properties().apply {
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.reader().use(::load)
+kotlin {
+    js {
+        outputModuleName.set("mini-app")
+        browser()
+        // Compose requires an executable binary so Skiko is bundled for UI tests (CMP-4906).
+        binaries.executable()
     }
-}
-
-fun publicationCredential(
-    propertyName: String,
-    envName: String,
-    legacyPropertyName: String? = null,
-    legacyEnvName: String? = null,
-): String? =
-    publicationSecrets.getProperty(propertyName)
-        ?: legacyPropertyName?.let(publicationSecrets::getProperty)
-        ?: System.getenv(envName)
-        ?: legacyEnvName?.let(System::getenv)
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    }
-}
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
-            username.set(
-                publicationCredential(
-                    propertyName = "sonatypeUsername",
-                    envName = "SONATYPE_USERNAME",
-                    legacyPropertyName = "ossrhUsername",
-                    legacyEnvName = "OSSRH_USERNAME",
-                ),
-            )
-            password.set(
-                publicationCredential(
-                    propertyName = "sonatypePassword",
-                    envName = "SONATYPE_PASSWORD",
-                    legacyPropertyName = "ossrhPassword",
-                    legacyEnvName = "OSSRH_PASSWORD",
-                ),
-            )
+    sourceSets {
+        jsMain.dependencies {
+            api("org.jetbrains.compose.runtime:runtime:$composeVersion")
+            api("org.jetbrains.compose.foundation:foundation:$composeVersion")
+            api("org.jetbrains.compose.ui:ui:$composeVersion")
         }
     }
 }
 
-kotlin {
-    js(IR) {
-        outputModuleName.set("mini-app")
-        browser()
-        binaries.executable()
+// Credentials and signing keys are read from Gradle properties:
+// mavenCentralUsername, mavenCentralPassword, signingInMemoryKey, signingInMemoryKeyPassword
+// (in ~/.gradle/gradle.properties or as ORG_GRADLE_PROJECT_* environment variables on CI).
+val hasSigningKey = providers.gradleProperty("signingInMemoryKey").isPresent
+
+mavenPublishing {
+    configure(KotlinMultiplatform(javadocJar = JavadocJar.Empty()))
+    publishToMavenCentral(automaticRelease = true)
+    if (hasSigningKey) {
+        signAllPublications()
     }
-    sourceSets {
-        val jsMain by getting {
-            dependencies {
-                api(compose.runtime)
-                api(compose.foundation)
-                api(compose.ui)
+
+    coordinates(group.toString(), "tg-mini-app", version.toString())
+
+    pom {
+        name.set("Telegram mini app KMP")
+        description.set("Library for creating telegram mini apps with Kotlin and Compose Multiplatform.")
+        url.set("https://github.com/kirillNay/tg-mini-app")
+
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://opensource.org/licenses/MIT")
             }
+        }
+        developers {
+            developer {
+                id.set("kirillNay")
+                name.set("Kirill Nayduik")
+                email.set("kirill.nayduikkn1@gmail.com")
+            }
+        }
+        scm {
+            url.set("https://github.com/kirillNay/tg-mini-app")
         }
     }
 }
