@@ -10,14 +10,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish:
-    name: Build and publish library
+  version-gate:
+    name: Check version bump
     runs-on: ubuntu-latest
-    # Protect this environment with required reviewers to approve every publication.
-    environment: maven-central
     permissions:
-      contents: write
-
+      contents: read
+    outputs:
+      should_publish: ${{ steps.version-gate.outputs.should_publish }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -45,8 +44,24 @@ jobs:
             echo "should_publish=false" >> "$GITHUB_OUTPUT"
           fi
 
+  publish:
+    name: Build and publish library
+    needs: version-gate
+    # Only a version bump publishes, so only a release asks for the maven-central approval.
+    if: needs.version-gate.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    # Protect this environment with required reviewers to approve every publication.
+    environment: maven-central
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
       - name: Set up JDK 21
-        if: steps.version-gate.outputs.should_publish == 'true'
         uses: actions/setup-java@v6
         with:
           distribution: temurin
@@ -54,7 +69,6 @@ jobs:
           cache: gradle
 
       - name: Validate publication secrets
-        if: steps.version-gate.outputs.should_publish == 'true'
         shell: bash
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -76,12 +90,7 @@ jobs:
             exit 1
           fi
 
-      - name: Skip publish without version bump
-        if: steps.version-gate.outputs.should_publish != 'true'
-        run: echo "No library version bump detected. Publish was skipped."
-
       - name: Build and publish to Maven Central
-        if: steps.version-gate.outputs.should_publish == 'true'
         shell: bash
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
@@ -92,7 +101,6 @@ jobs:
         run: ./gradlew --no-daemon build publishToMavenCentral
 
       - name: Create GitHub Release
-        if: steps.version-gate.outputs.should_publish == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
