@@ -1,0 +1,11 @@
+{
+  "name": "coffee-order-demo-e2e",
+  "private": true,
+  "description": "End-to-end tests of the web sample in a Telegram-like environment",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

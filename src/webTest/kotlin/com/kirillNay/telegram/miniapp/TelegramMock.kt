@@ -68,3 +68,15 @@ internal fun handlerCount(mock: JsAny, type: String): Int = js("mock._count(type
 internal fun lastArgument(mock: JsAny, method: String): JsAny? = js("mock._last[method]")
 
 internal fun eventPayload(json: String): JsAny = js("JSON.parse(json)")
+
+internal fun setThemeParam(mock: JsAny, key: String, value: String) {
+    js("mock.themeParams[key] = value;")
+}
+
+internal fun setMockNumber(mock: JsAny, key: String, value: Double) {
+    js("mock[key] = value;")
+}
+
+internal fun setMockString(mock: JsAny, key: String, value: String) {
+    js("mock[key] = value;")
+}
