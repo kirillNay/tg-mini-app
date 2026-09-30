@@ -258,6 +258,10 @@ The API is designed to stay close to the official [Telegram Mini Apps documentat
 
 Publishing moved from the Sonatype staging plugin to `com.vanniktech.maven.publish`. CI passes the existing `SONATYPE_*` and `SIGNING_*` secrets as `ORG_GRADLE_PROJECT_mavenCentral*` and `ORG_GRADLE_PROJECT_signingInMemory*` properties.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 [MIT](LICENSE)

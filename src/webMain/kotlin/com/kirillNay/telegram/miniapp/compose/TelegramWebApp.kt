@@ -40,31 +40,40 @@ fun telegramWebApp(
     runWhenComposeReady {
         ComposeViewport {
             val timeToFirstFrameLogger = remember { TimeToFirstFrameLogger(startTimestampMillis) }
-            var style by remember { mutableStateOf(webApp.currentStyle()) }
-
-            DisposableEffect(Unit) {
-                val update: (Any?) -> Unit = { style = webApp.currentStyle() }
-                val subscriptions = listOf(
-                    webApp.onEvent(WebAppEvent.ViewportChanged, update),
-                    webApp.onEvent(WebAppEvent.ThemeChanged, update),
-                    webApp.onEvent(WebAppEvent.SafeAreaChanged, update),
-                    webApp.onEvent(WebAppEvent.ContentSafeAreaChanged, update),
-                )
-                onDispose { subscriptions.forEach { it.unsubscribe() } }
-            }
-
             SideEffect {
                 timeToFirstFrameLogger.onFirstComposeCommit()
             }
 
-            CompositionLocalProvider(LocalTelegramStyle provides style) {
-                content(style)
-            }
+            TelegramWebAppContent(webApp, content)
         }
     }
 }
 
-private fun WebApp.currentStyle() = TelegramStyle(
+/** Keeps [TelegramStyle] in sync with [webApp] events and provides it to [content]. */
+@Composable
+internal fun TelegramWebAppContent(
+    webApp: WebApp,
+    content: @Composable (TelegramStyle) -> Unit,
+) {
+    var style by remember(webApp) { mutableStateOf(webApp.currentStyle()) }
+
+    DisposableEffect(webApp) {
+        val update: (Any?) -> Unit = { style = webApp.currentStyle() }
+        val subscriptions = listOf(
+            webApp.onEvent(WebAppEvent.ViewportChanged, update),
+            webApp.onEvent(WebAppEvent.ThemeChanged, update),
+            webApp.onEvent(WebAppEvent.SafeAreaChanged, update),
+            webApp.onEvent(WebAppEvent.ContentSafeAreaChanged, update),
+        )
+        onDispose { subscriptions.forEach { it.unsubscribe() } }
+    }
+
+    CompositionLocalProvider(LocalTelegramStyle provides style) {
+        content(style)
+    }
+}
+
+internal fun WebApp.currentStyle() = TelegramStyle(
     viewPort = ViewPort(viewportHeight.dp, viewportStableHeight.dp),
     colors = TelegramColors.from(themeParams),
     colorScheme = colorScheme,

@@ -13,8 +13,10 @@ jobs:
   publish:
     name: Build and publish library
     runs-on: ubuntu-latest
+    # Protect this environment with required reviewers to approve every publication.
+    environment: maven-central
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -88,3 +90,14 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew --no-daemon build publishToMavenCentral
+
+      - name: Create GitHub Release
+        if: steps.version-gate.outputs.should_publish == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version=$(bash scripts/ci/read-version.sh build.gradle.kts)
+          bash scripts/release/changelog-section.sh "$version" > /tmp/release-notes.md
+          gh release create "v$version" --target "${{ github.sha }}" --title "v$version" --notes-file /tmp/release-notes.md
