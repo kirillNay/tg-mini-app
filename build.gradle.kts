@@ -19,17 +19,34 @@ repositories {
 }
 
 kotlin {
+    compilerOptions {
+        optIn.add("kotlin.js.ExperimentalWasmJsInterop")
+    }
     js {
         outputModuleName.set("mini-app")
-        browser()
+        browser {
+            testTask { useKarma { useChromeHeadless() } }
+        }
         // Compose requires an executable binary so Skiko is bundled for UI tests (CMP-4906).
         binaries.executable()
     }
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        outputModuleName.set("mini-app-wasm")
+        browser {
+            testTask { useKarma { useChromeHeadless() } }
+        }
+        binaries.executable()
+    }
     sourceSets {
-        jsMain.dependencies {
+        webMain.dependencies {
             api("org.jetbrains.compose.runtime:runtime:$composeVersion")
             api("org.jetbrains.compose.foundation:foundation:$composeVersion")
             api("org.jetbrains.compose.ui:ui:$composeVersion")
+        }
+        webTest.dependencies {
+            implementation(kotlin("test"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
         }
     }
 }
