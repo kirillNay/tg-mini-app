@@ -1,0 +1,103 @@
+name: Release Flow
+
+# develop gets a version bump (from a maintenance PR)  -> open "Release x.y.z" PR develop -> master.
+# master gets a release                                -> open a sync PR master -> develop.
+# PRs are opened through Claude's GitHub App, so CI and reviews run on them (GITHUB_TOKEN events don't trigger workflows).
+on:
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: release-flow-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-pr:
+    name: Open release PR
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check whether develop has an unreleased version
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git show origin/master:build.gradle.kts > /tmp/master-build.gradle.kts
+          version=$(bash scripts/ci/read-version.sh build.gradle.kts)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          open=$(gh pr list --base master --head develop --state open --json number --jq length)
+          if bash scripts/ci/validate-version-bump.sh /tmp/master-build.gradle.kts build.gradle.kts && [[ "$open" == "0" ]]; then
+            bash scripts/release/changelog-section.sh "$version" > /dev/null
+            gh label create release --color 0e8a16 --description "Release pull request" --force
+            echo "open_pr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "open_pr=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.open_pr == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+
+            Open the release pull request for version ${{ steps.check.outputs.version }}. Do not change any files.
+            1. Write the release notes with `bash scripts/release/changelog-section.sh ${{ steps.check.outputs.version }} > /tmp/notes.md`.
+            2. Run exactly:
+               gh pr create --base master --head develop --label release --title "Release ${{ steps.check.outputs.version }}" --body-file /tmp/notes.md
+          claude_args: |
+            --max-turns 10
+            --allowedTools "Bash(bash scripts/release/changelog-section.sh:*),Bash(gh pr create:*)"
+
+  sync-develop:
+    name: Open sync PR into develop
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check whether master has commits missing in develop
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          missing=$(git rev-list --count origin/develop..origin/master)
+          open=$(gh pr list --base develop --head master --state open --json number --jq length)
+          if [[ "$missing" != "0" && "$open" == "0" ]]; then
+            gh label create sync --color c5def5 --description "Sync master into develop" --force
+            echo "open_pr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "open_pr=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.open_pr == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+
+            Open a pull request that merges master back into develop after a release. Do not change any files. Run exactly:
+            gh pr create --base develop --head master --label sync --title "Sync master into develop" --body "Brings the release commit from master back to develop. Merge with a merge commit."
+          claude_args: |
+            --max-turns 5
+            --allowedTools "Bash(gh pr create:*)"
