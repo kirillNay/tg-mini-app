@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2AABEE"/>
+      <stop offset="1" stop-color="#6A4DF4"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.3" cy="0.22" r="0.7">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8F5CFF"/>
+      <stop offset="0.55" stop-color="#E0457B"/>
+      <stop offset="1" stop-color="#FF9A3C"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#1B1150" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="640" height="640" fill="url(#bg)"/>
+  <rect width="640" height="640" fill="url(#glow)"/>
+
+  <!-- Mini App window -->
+  <g filter="url(#shadow)">
+    <rect x="160" y="150" width="320" height="340" rx="64" fill="#FFFFFF"/>
+  </g>
+  <!-- header bar -->
+  <path d="M206 214 l-14 14 l14 14" fill="none" stroke="#2AABEE" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="236" y="220" width="120" height="16" rx="8" fill="#DDE6F0"/>
+  <circle cx="428" cy="228" r="9" fill="#DDE6F0"/>
+  <!-- capability tiles -->
+  <rect x="196" y="270" width="116" height="92" rx="24" fill="url(#accent)"/>
+  <rect x="328" y="270" width="116" height="92" rx="24" fill="#2AABEE"/>
+  <rect x="196" y="378" width="116" height="76" rx="24" fill="#2AABEE" fill-opacity="0.22"/>
+  <rect x="328" y="378" width="116" height="76" rx="24" fill="#6A4DF4" fill-opacity="0.22"/>
+  <!-- spark in the accent tile -->
+  <path d="M254 290 l7 18 l18 7 l-18 7 l-7 18 l-7 -18 l-18 -7 l18 -7 z" fill="#FFFFFF"/>
+</svg>
