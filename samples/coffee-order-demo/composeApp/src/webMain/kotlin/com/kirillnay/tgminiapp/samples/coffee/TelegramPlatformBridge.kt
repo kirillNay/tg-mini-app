@@ -2,10 +2,8 @@ package com.kirillnay.tgminiapp.samples.coffee
 
 import androidx.compose.ui.graphics.Color
 import com.kirillNay.telegram.miniapp.compose.TelegramStyle
+import com.kirillNay.telegram.miniapp.webApp.HapticFeedback
 import com.kirillNay.telegram.miniapp.webApp.webApp
-import kotlinx.browser.window
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 private const val NoteStorageKey = "coffee_order_demo_note"
 
@@ -16,9 +14,11 @@ class TelegramPlatformBridge(
     private var currentBackAction: (() -> Unit)? = null
     private var currentMainAction: (() -> Unit)? = null
 
+    private val hasCloudStorage = webApp.isVersionAtLeast("6.9")
+
     override val environment: AppEnvironment = AppEnvironment(
         palette = AppPalette(
-            isDark = webApp.colorScheme.value == "dark",
+            isDark = style.isDark,
             background = style.colors.backgroundColor,
             surface = style.colors.secondaryBackgroundColor,
             surfaceAccent = blend(style.colors.secondaryBackgroundColor, style.colors.buttonColor, 0.1f),
@@ -26,66 +26,48 @@ class TelegramPlatformBridge(
             onPrimary = style.colors.buttonTextColor,
             text = style.colors.textColor,
             mutedText = style.colors.hintColor,
-            border = blend(style.colors.hintColor, style.colors.backgroundColor, 0.5f),
+            border = style.colors.sectionSeparatorColor,
         ),
         platformLabel = "Web",
         runtimeLabel = "Telegram ${webApp.platform} / Bot API ${webApp.version}",
         userLabel = webApp.initDataUnsafe.user?.firstName ?: "Telegram guest",
         usernameLabel = webApp.initDataUnsafe.user?.username?.let { "@$it" },
-        storageLabel = if (webApp.isVersionAtLeast("6.9")) {
+        storageLabel = if (hasCloudStorage) {
             "Telegram CloudStorage with localStorage fallback"
         } else {
             "Browser localStorage fallback"
         },
-        viewportLabel = "${style.viewPort.viewPortHeight.value.toInt()}dp visible / ${style.viewPort.viewportStableHeight.value.toInt()}dp stable",
-        themeLabel = "Telegram ${webApp.colorScheme.value} theme",
+        viewportLabel = "${style.viewPort.height.value.toInt()}dp visible / ${style.viewPort.stableHeight.value.toInt()}dp stable",
+        themeLabel = "Telegram ${style.colorScheme.value} theme",
         isTelegramRuntime = true,
     )
 
-    init {
-        webApp.ready()
-        webApp.expand()
-        webApp.enableClosingConfirmation(true)
-        webApp.setBackgroundColor("bg_color")
-        webApp.setHeaderColor("secondary_bg_color")
-    }
-
     override suspend fun loadNote(): Result<String> {
-        val localValue = runCatching { window.localStorage.getItem(NoteStorageKey).orEmpty() }.getOrDefault("")
-        if (!webApp.isVersionAtLeast("6.9")) {
+        val localValue = runCatching { localStorageGet(NoteStorageKey).orEmpty() }.getOrDefault("")
+        if (!hasCloudStorage) {
             return Result.success(localValue)
         }
 
         return webApp.cloudStorage.getItem(NoteStorageKey)
-            .map { cloudValue -> if (cloudValue.isBlank()) localValue else cloudValue }
+            .map { cloudValue -> cloudValue.ifBlank { localValue } }
             .recover { localValue }
     }
 
     override suspend fun saveNote(note: String): Result<Unit> {
-        val localResult = runCatching {
-            window.localStorage.setItem(NoteStorageKey, note)
-        }
-
+        val localResult = runCatching { localStorageSet(NoteStorageKey, note) }
         if (localResult.isFailure) {
             return Result.failure(localResult.exceptionOrNull() ?: IllegalStateException("Unable to write localStorage."))
         }
 
-        if (!webApp.isVersionAtLeast("6.9")) {
-            return Result.success(Unit)
+        if (hasCloudStorage) {
+            // The local copy is enough to keep the note if CloudStorage fails.
+            webApp.cloudStorage.setItem(NoteStorageKey, note)
         }
-
-        return webApp.cloudStorage.setItem(NoteStorageKey, note)
-            .fold(
-                onSuccess = { Result.success(Unit) },
-                onFailure = { Result.success(Unit) },
-            )
+        return Result.success(Unit)
     }
 
-    override suspend fun confirmOrder(summary: String): Boolean = suspendCoroutine { continuation ->
-        webApp.showConfirm("Confirm coffee order?\n$summary") { isConfirmed ->
-            continuation.resume(isConfirmed)
-        }
-    }
+    override suspend fun confirmOrder(summary: String): Boolean =
+        webApp.awaitConfirm("Confirm coffee order?\n$summary")
 
     override fun updateChrome(backAction: (() -> Unit)?, mainAction: BridgeAction?) {
         currentBackAction?.let { webApp.backButton.offClick(it) }
@@ -93,41 +75,37 @@ class TelegramPlatformBridge(
         if (backAction == null) {
             webApp.backButton.hide()
         } else {
-            webApp.backButton.onClick(backAction)
-            webApp.backButton.show()
+            webApp.backButton.onClick(backAction).show()
         }
 
         currentMainAction?.let { webApp.mainButton.offClick(it) }
         currentMainAction = mainAction?.onClick
         if (mainAction == null) {
-            webApp.mainButton.hideProgress()
-            webApp.mainButton.hide()
+            webApp.mainButton.hideProgress().hide()
         } else {
-            webApp.mainButton.setText(mainAction.label)
-            webApp.mainButton.enable()
-            webApp.mainButton.onClick(mainAction.onClick)
-            webApp.mainButton.show()
+            webApp.mainButton
+                .setText(mainAction.label)
+                .enable()
+                .onClick(mainAction.onClick)
+                .show()
         }
     }
 
-    override fun clearChrome() {
-        currentBackAction?.let { webApp.backButton.offClick(it) }
-        currentBackAction = null
-        webApp.backButton.hide()
-
-        currentMainAction?.let { webApp.mainButton.offClick(it) }
-        currentMainAction = null
-        webApp.mainButton.hideProgress()
-        webApp.mainButton.hide()
-    }
+    override fun clearChrome() = updateChrome(backAction = null, mainAction = null)
 
     override fun onItemAdded() {
-        webApp.hapticFeedback.impactOccurred("light")
+        webApp.hapticFeedback.impactOccurred(HapticFeedback.ImpactStyle.LIGHT)
     }
 
     override fun onOrderCompleted() {
-        webApp.hapticFeedback.notificationOccurred("success")
+        webApp.hapticFeedback.notificationOccurred(HapticFeedback.NotificationType.SUCCESS)
     }
+}
+
+private fun localStorageGet(key: String): String? = js("window.localStorage.getItem(key)")
+
+private fun localStorageSet(key: String, value: String) {
+    js("window.localStorage.setItem(key, value);")
 }
 
 private fun blend(first: Color, second: Color, amount: Float): Color {

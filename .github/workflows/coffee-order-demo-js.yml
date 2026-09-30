@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build-and-package:
-    name: Build, run, and package jsMain
+    name: Build, run, and package the web sample
     runs-on: ubuntu-latest
 
     steps:
@@ -32,14 +32,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Build production bundle
-        run: ./gradlew -p samples/coffee-order-demo :composeApp:jsBrowserProductionWebpack
+        # Wasm build with an automatic fallback to the js build for browsers without WasmGC.
+        run: ./gradlew -p samples/coffee-order-demo :composeApp:composeCompatibilityBrowserDistribution
 
       - name: Prepare GitHub Pages artifact
         run: |
           SITE_DIR="$RUNNER_TEMP/coffee-order-demo-site"
           mkdir -p "$SITE_DIR"
-          cp samples/coffee-order-demo/composeApp/build/processedResources/js/main/index.html "$SITE_DIR/"
-          cp samples/coffee-order-demo/composeApp/build/kotlin-webpack/js/productionExecutable/* "$SITE_DIR/"
+          cp -R samples/coffee-order-demo/composeApp/build/dist/composeWebCompatibility/productionExecutable/. "$SITE_DIR/"
           touch "$SITE_DIR/.nojekyll"
           find "$SITE_DIR" -maxdepth 1 -type f | sort
 
@@ -57,6 +57,8 @@ jobs:
           done
           curl --fail --silent --show-error http://127.0.0.1:4173/ | grep -q "<title>Coffee Order Demo</title>"
           curl --fail --silent --show-error http://127.0.0.1:4173/composeApp.js >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4173/originWasmComposeApp.js >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4173/originJsComposeApp.js >/dev/null
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
@@ -67,7 +69,7 @@ jobs:
           path: ${{ runner.temp }}/coffee-order-demo-site
 
   deploy:
-    name: Deploy jsMain to GitHub Pages
+    name: Deploy the web sample to GitHub Pages
     needs: build-and-package
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest

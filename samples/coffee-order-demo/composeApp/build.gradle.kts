@@ -29,12 +29,25 @@ kotlin {
     }
 
     js {
+        compilerOptions.optIn.add("kotlin.js.ExperimentalWasmJsInterop")
         outputModuleName.set("coffee-order-demo")
         browser {
             commonWebpackConfig {
                 devServer = (devServer ?: org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig.DevServer()).apply {
                     open = true
                 }
+            }
+        }
+        binaries.executable()
+    }
+
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        compilerOptions.optIn.add("kotlin.js.ExperimentalWasmJsInterop")
+        outputModuleName.set("coffee-order-demo")
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
             }
         }
         binaries.executable()
@@ -48,7 +61,7 @@ kotlin {
             api("org.jetbrains.compose.ui:ui:$composeVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
         }
-        jsMain.dependencies {
+        webMain.dependencies {
             implementation("io.github.kirillNay:tg-mini-app:2.0.0")
         }
     }
