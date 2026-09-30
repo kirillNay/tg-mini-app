@@ -10,7 +10,6 @@ on:
   workflow_run:
     workflows:
       - Showcase Web
-      - Coffee Order Demo JS # the demo workflow's name before the showcase rename; remove once develop has "Showcase Web"
       - Publish Library
     types:
       - completed
